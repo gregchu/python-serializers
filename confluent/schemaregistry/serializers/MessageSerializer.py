@@ -1,7 +1,7 @@
 from avro import io
 from fastavro.reader import read_data
 from fastavro import dump
-import StringIO
+import io
 import json
 import struct
 import sys
