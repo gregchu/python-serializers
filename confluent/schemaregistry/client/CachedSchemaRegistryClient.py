@@ -48,9 +48,9 @@ class CachedSchemaRegistryClient(object):
         try:
             response = urllib2.urlopen(new_req)
             # read response
-            result = json.loads(response.read())
+            result = json.loads(response.read().decode('utf-8'))
             # build meta with headers as a dict
-            meta = response.info().dict
+            meta = response.info()
             # http code
             code = response.getcode()
             # return result + meta tuple

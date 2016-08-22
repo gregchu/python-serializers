@@ -37,3 +37,4 @@ pip-delete-this-directory.txt
 .venv*
 *.ignore.py
 *.avro
+.idea/
