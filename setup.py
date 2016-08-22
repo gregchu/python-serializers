@@ -12,7 +12,7 @@ install_requires = []
 version = '.'.join([ str(confluent.schemaregistry.__version__[i]) for i in range(3) ])
 
 setup(
-    name = 'confluent-schemaregistry',
+    name = 'confluent-schemaregistry-datamountaineer',
     version = version,
     packages = ['confluent',
                 'confluent.schemaregistry',
@@ -22,15 +22,15 @@ setup(
 
     # Project uses simplejson, so ensure that it gets installed or upgraded
     # on the target machine
-    install_requires = ['avro'],
+    install_requires = ['fastavro'],
 
     # metadata for upload to PyPI
     author = 'Verisign',
     author_email = 'vsrtc-dev@verisign.com',
     description = 'Confluent Schema Registry lib',
     keywords = 'confluent schema registry schemaregistry',
-    extras_require = {
-        'fastavro': ['fastavro'],
-    },
+    # extras_require = {
+    #     'fastavro': ['fastavro'],
+    # },
     test_requires = ['unittest2']
 )

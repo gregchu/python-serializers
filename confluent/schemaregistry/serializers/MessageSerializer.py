@@ -1,5 +1,6 @@
-from avro import io
-import StringIO
+from fastavro.reader import read_data
+from fastavro import dump
+import io
 import json
 import struct
 import sys
@@ -8,17 +9,10 @@ from . import SerializerError
 
 MAGIC_BYTE = 0
 
-HAS_FAST = False
-try:
-    from fastavro.reader import read_data
-    HAS_FAST = True
-except:
-    pass
 
-
-class ContextStringIO(StringIO.StringIO):
+class ContextBytesIO(io.BytesIO):
     """
-    Wrapper to allow use of StringIO via 'with' constructs.
+    Wrapper to allow use of BytesIO via 'with' constructs.
     """
     def __enter__(self):
         return self
@@ -37,7 +31,7 @@ class MessageSerializer(object):
     def __init__(self, registry_client):
         self.registry_client = registry_client
         self.id_to_decoder_func = { }
-        self.id_to_writers = { }
+        # self.id_to_writers = { }
 
     def encode_record_with_schema(self, topic, schema, record, is_key=False):
         """
@@ -62,7 +56,7 @@ class MessageSerializer(object):
             raise SerializerError(message)
 
         # cache writer
-        self.id_to_writers[schema_id] = io.DatumWriter(schema)
+        # self.id_to_writers[schema_id] = io.DatumWriter(schema)
         return self.encode_record_with_schema_id(schema_id, record)
 
     # subject = topic + suffix
@@ -84,7 +78,7 @@ class MessageSerializer(object):
             raise SerializerError(message)
         else:
             # cache writer
-            self.id_to_writers[schema_id] = io.DatumWriter(schema)
+            # self.id_to_writers[schema_id] = io.DatumWriter(schema)
             return self.encode_record_with_schema_id(schema_id, record)
 
     def encode_record_with_schema_id(self, schema_id, record):
@@ -107,19 +101,19 @@ class MessageSerializer(object):
 
         # get the writer
         writer = self.id_to_writers[schema_id]
-        with ContextStringIO() as outf:
+        with ContextBytesIO() as outf:
             # write the header
             # magic byte
             outf.write(struct.pack('b',MAGIC_BYTE))
             # write the schema ID in network byte order (big end)
             outf.write(struct.pack('>I',schema_id))
-            # write the record to the rest of it
-            # Create an encoder that we'll write to
-            encoder = io.BinaryEncoder(outf)
-            # write the magic byte
-            # write the object in 'obj' as Avro to the fake file...
-            writer.write(record, encoder)
-
+            # # write the record to the rest of it
+            # # Create an encoder that we'll write to
+            # encoder = io.BinaryEncoder(outf)
+            # # write the magic byte
+            # # write the object in 'obj' as Avro to the fake file...
+            # writer.write(record, encoder)
+            dump(outf, record, schema)
             return outf.getvalue()
 
 
@@ -139,32 +133,21 @@ class MessageSerializer(object):
             raise SerializerError(err)
 
         curr_pos = payload.tell()
-        if HAS_FAST:
-            # try to use fast avro
-            try:
-                schema_dict = schema.to_json()
-                obj = read_data(payload, schema_dict)
-                # here means we passed so this is something fastavro can do
-                # seek back since it will be called again for the
-                # same payload - one time hit
 
-                payload.seek(curr_pos)
-                decoder_func = lambda p: read_data(p, schema_dict)
-                self.id_to_decoder_func[schema_id] = decoder_func
-                return self.id_to_decoder_func[schema_id]
-            except:
-                pass
+        # try to use fast avro
+        try:
+            schema_dict = schema.to_json()
+            obj = read_data(payload, schema_dict)
+            # here means we passed so this is something fastavro can do
+            # seek back since it will be called again for the
+            # same payload - one time hit
 
-        # here means we should just delegate to slow avro
-        # rewind
-        payload.seek(curr_pos)
-        avro_reader = io.DatumReader(schema)
-        def decoder(p):
-            bin_decoder = io.BinaryDecoder(p)
-            return avro_reader.read(bin_decoder)
-
-        self.id_to_decoder_func[schema_id] = decoder
-        return self.id_to_decoder_func[schema_id]
+            payload.seek(curr_pos)
+            decoder_func = lambda p: read_data(p, schema_dict)
+            self.id_to_decoder_func[schema_id] = decoder_func
+            return self.id_to_decoder_func[schema_id]
+        except:
+            pass
 
     def decode_message(self, message):
         """
@@ -174,7 +157,7 @@ class MessageSerializer(object):
         if len(message) <= 5:
             raise SerializerError("message is too small to decode")
 
-        with ContextStringIO(message) as payload:
+        with ContextBytesIO(message) as payload:
             magic,schema_id = struct.unpack('>bI',payload.read(5))
             if magic != MAGIC_BYTE:
                 raise SerializerError("message does not start with magic byte")

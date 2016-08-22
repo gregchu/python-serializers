@@ -1,4 +1,4 @@
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import json
 import sys
 
@@ -31,9 +31,9 @@ class CachedSchemaRegistryClient(object):
 
     def _send_request(self, url, method='GET', body=None, headers=None):
         if body:
-            body = json.dumps(body)
-
-        new_req = urllib2.Request(url, data=body)
+            body = json.dumps(body).encode('utf-8')
+	
+        new_req = urllib.request.Request(url, data=body)
         # must be callable
         new_req.get_method = lambda: method
         # set the accept header
@@ -46,18 +46,18 @@ class CachedSchemaRegistryClient(object):
             for header_name in headers:
                 new_req.add_header(header_name, headers[header_name])
         try:
-            response = urllib2.urlopen(new_req)
+            response = urllib.request.urlopen(new_req)
             # read response
-            result = json.loads(response.read())
+            result = json.loads(response.read().decode('utf-8'))
             # build meta with headers as a dict
-            meta = response.info().dict
+            meta = response.info()
             # http code
             code = response.getcode()
             # return result + meta tuple
             return (result, meta, code)
-        except urllib2.HTTPError as e:
+        except urllib.request.HTTPError as e:
             code = e.code
-            result = json.loads(e.read())
+            result = json.loads(e.read().decode('utf-8'))
             message = "HTTP Error (%d) from schema registry: %s %d" % (code,
                                                                        result.get('message'),
                                                                        result.get('error_code'))
@@ -72,7 +72,7 @@ class CachedSchemaRegistryClient(object):
         if subject not in cache:
             cache[subject] = { }
         sub_cache = cache[subject]
-        sub_cache[schema] = value
+        sub_cache[subject] = value
 
     def _cache_schema(self, schema, schema_id, subject=None, version=None):
         # don't overwrite anything
@@ -177,10 +177,10 @@ class CachedSchemaRegistryClient(object):
 
         Returns -1 if not found.
         """
-        schemas_to_version = self.subject_to_schema_versions.get(subject,{})
-        version = schemas_to_version.get(avro_schema, -1)
-        if version != -1:
-            return version
+        # schemas_to_version = self.subject_to_schema_versions.get(subject,{})
+        # version = schemas_to_version.get(avro_schema, -1)
+        # if version != -1:
+        #    return version
 
         url = '/'.join([self.url, 'subjects', subject])
         body = { 'schema' : json.dumps(avro_schema.to_json()) }
