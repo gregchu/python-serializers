@@ -1,4 +1,4 @@
-import http.server
+import BaseHTTPServer
 import re
 from threading import Thread
 import data_gen
@@ -6,7 +6,7 @@ import setup_test_path
 from confluent.schemaregistry.serializers import Util
 import json
 
-class ReqHandler(http.server.BaseHTTPRequestHandler):
+class ReqHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     protocol_version = "HTTP/1.0"
     def do_GET(self):
         self.server._run_routes(self)
@@ -18,7 +18,7 @@ class ReqHandler(http.server.BaseHTTPRequestHandler):
         pass
 
 
-class MockServer(http.server.HTTPServer, object):
+class MockServer(BaseHTTPServer.HTTPServer, object):
     def __init__(self, *args, **kwargs):
         super(MockServer, self).__init__(*args, **kwargs)
         self.counts = { }
@@ -33,13 +33,13 @@ class MockServer(http.server.HTTPServer, object):
                 (r"/subjects/(\w+)", 'get_version')
             ]
         }
-        self.schema =  data_gen.load_schema_file('basic_schema.avsc')
+        self.schema =  Util.parse_schema_from_file(data_gen.get_schema_path('adv_schema.avsc'))
 
     def _send_response(self, resp, status, body):
         resp.send_response(status)
         resp.send_header("Content-Type","application/json")
         resp.end_headers()
-        resp.wfile.write(json.dumps(body).encode('utf-8'))
+        resp.wfile.write(json.dumps(body))
         resp.finish()
 
     def _create_error(self, msg, status=400, err_code=1):
@@ -69,14 +69,18 @@ class MockServer(http.server.HTTPServer, object):
         return (200,result)
 
     def _get_identity_schema(self, avro_schema):
-        return json.dumps(avro_schema.to_json())
+        # normalized
+        schema_str = json.dumps(avro_schema.to_json())
+        if schema_str in self.schema_cache:
+            return self.schema_cache[schema_str]
+        self.schema_cache[schema_str] = avro_schema
+        return avro_schema
 
     def _get_schema_from_body(self, req):
-        length = req.headers['content-length']
-        data = req.rfile.read(int(length))
-        data = json.loads(data.decode('utf-8'))
-        schema = data.get("schema", None)
-
+        length = int(req.headers.getheader('content-length'))
+        data = req.rfile.read(length)
+        data = json.loads(data)
+        schema = data.get("schema",None)
         if not schema:
             return None
         try:
@@ -85,13 +89,15 @@ class MockServer(http.server.HTTPServer, object):
         except:
             return None
 
-    def register(self, req, groups):
+    def register(self, req):
+        avro_schema = self._get_schema_from_body(req)
+        if not avro_schema:
+            return self._create_error("Invalid avro schema", 422, 42201)
         schema_id = 1
         return (200, {'id' : schema_id })
 
     def get_version(self, req, groups):
         avro_schema = self._get_schema_from_body(req)
-
         if not avro_schema:
             return self._create_error("Invalid avro schema", 422, 42201)
         subject = groups[0]
@@ -101,7 +107,7 @@ class MockServer(http.server.HTTPServer, object):
         schema_id = 1
 
         result = {
-            "schema" : avro_schema,
+            "schema" : self.schema,
             "subject" : subject,
             "id" : schema_id,
             "version" : version
@@ -110,11 +116,14 @@ class MockServer(http.server.HTTPServer, object):
 
     def get_latest(self, req, groups):
         subject = groups[0]
+        schema_id,avro_schema,version = (1, self.schema, 1)
+        if schema_id == None:
+            return self._create_error("Not found", 404)
         result = {
             "schema" : self.schema,
             "subject" : subject,
-            "id" : 1,
-            "version" : 1
+            "id" : schema_id,
+            "version" : version
         }
         return (200, result)
 

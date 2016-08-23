@@ -6,13 +6,13 @@ import struct
 
 from avro import schema
 from confluent.schemaregistry.serializers import MessageSerializer, Util
-from confluent.schemaregistry.client import MockSchemaRegistryClient
+from confluent.schemaregistry.client import CachedSchemaRegistryClient
 
 class TestMessageSerializer(unittest.TestCase):
 
     def setUp(self):
         # need to set up the serializer
-        self.client = MockSchemaRegistryClient()
+        self.client = CachedSchemaRegistryClient('http://127.0.0.1:9001')
         self.ms = MessageSerializer(self.client)
 
     def assertMessageIsSame(self, message, expected, schema_id):

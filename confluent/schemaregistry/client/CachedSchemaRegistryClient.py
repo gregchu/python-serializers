@@ -16,18 +16,11 @@ class CachedSchemaRegistryClient(object):
 
     Errors communicating to the server will result in a ClientError being raised.
     """
-    def __init__(self, url, max_schemas_per_subject=1000):
+    def __init__(self, url):
         """Construct a client by passing in the base URL of the schema registry server"""
 
         self.url = url.rstrip('/')
-
-        self.max_schemas_per_subject = max_schemas_per_subject
-        # subj => { schema => id }
-        self.subject_to_schema_ids = { }
-        # id => avro_schema
         self.id_to_schema = {}
-        # subj => { schema => version }
-        self.subject_to_schema_versions = {}
 
     def _send_request(self, url, method='GET', body=None, headers=None):
         if body:
@@ -68,26 +61,9 @@ class CachedSchemaRegistryClient(object):
             msg = "An unexpected error occurred: %s" % (str(sys.exc_info()[1]))
             raise ClientError(msg)
 
-    def _add_to_cache(self, cache, subject, schema, value):
-        if subject not in cache:
-            cache[subject] = { }
-        sub_cache = cache[subject]
-        sub_cache[subject] = value
-
     def _cache_schema(self, schema, schema_id, subject=None, version=None):
-        # don't overwrite anything
-        if schema_id in self.id_to_schema:
-            schema = self.id_to_schema[schema_id]
-        else:
-            self.id_to_schema[schema_id] = schema
-
-        if subject:
-            self._add_to_cache(self.subject_to_schema_ids,
-                               subject, schema, schema_id)
-            if version:
-                self._add_to_cache(self.subject_to_schema_versions,
-                                   subject, schema, version)
-
+        # overwrite, not much performance impact, as shouldn't be happening often
+        self.id_to_schema[schema_id] = schema
 
     def register(self, subject, avro_schema):
         """
@@ -96,29 +72,21 @@ class CachedSchemaRegistryClient(object):
 
         avro_schema must be a parsed schema from the python avro library
 
-        Multiple instances of the same schema will result in cache misses.
         """
-        schemas_to_id = self.subject_to_schema_ids.get(subject, { })
-        schema_id = schemas_to_id.get(avro_schema, -1)
-        if schema_id != -1:
-            return schema_id
 
-        # send it up
         url = '/'.join([self.url,'subjects',subject,'versions'])
-        # body is { schema : json_string }
         body = { 'schema' : json.dumps(avro_schema.to_json()) }
         result,meta,code = self._send_request(url, method='POST', body=body)
-        # result is a dict
         schema_id = result['id']
-        # cache it
         self._cache_schema(avro_schema, schema_id, subject)
         return schema_id
 
     def get_by_id(self, schema_id):
         """Retrieve a parsed avro schema by id or None if not found"""
+
         if schema_id in self.id_to_schema:
             return self.id_to_schema[schema_id]
-        # fetch from the registry
+
         url = '/'.join([self.url,'schemas','ids',str(schema_id)])
         try:
             result,meta,code = self._send_request(url)
