@@ -1,4 +1,3 @@
-
 VALID_LEVELS=['NONE','FULL','FORWARD','BACKWARD']
 
 class ClientError(Exception, object):
@@ -13,5 +12,3 @@ class ClientError(Exception, object):
 
     def __str__(self):
         return self.message
-
-from .CachedSchemaRegistryClient import *

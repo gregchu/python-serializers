@@ -1,12 +1,11 @@
 {
-    "name": "basic",
+    "name": "basicPerson",
     "type": "record",
-    "doc": "basic schema for tests",
-    "namespace": "python.test.basic",
+    "namespace": "python.test.advanced",
     "fields": [
         {
             "name": "number",
-            "doc": "age",
+            "doc": "friend age",
             "type": [
                 "long",
                 "null"
@@ -14,7 +13,7 @@
         },
         {
             "name": "name",
-            "doc": "a name",
+            "doc": "friend name",
             "type": [
                 "string"
             ]

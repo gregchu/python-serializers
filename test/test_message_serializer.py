@@ -1,19 +1,23 @@
 import unittest2 as unittest
 import data_gen
-import setup_test_path
-
 import struct
-
-from avro import schema
-from confluent.schemaregistry.serializers import MessageSerializer, Util
-from confluent.schemaregistry.client import CachedSchemaRegistryClient
+import mock_registry
+import setup_test_path
+from datamountaineer.schemaregistry.serializers import MessageSerializer, Util
+from datamountaineer.schemaregistry.client import CachedSchemaRegistryClient
 
 class TestMessageSerializer(unittest.TestCase):
 
     def setUp(self):
+        self.server = mock_registry.ServerThread(9001)
+        self.server.start()
         # need to set up the serializer
         self.client = CachedSchemaRegistryClient('http://127.0.0.1:9001')
         self.ms = MessageSerializer(self.client)
+
+    def tearDown(self):
+        self.server.shutdown()
+        self.server.join()
 
     def assertMessageIsSame(self, message, expected, schema_id):
         self.assertTrue(message)
@@ -27,44 +31,41 @@ class TestMessageSerializer(unittest.TestCase):
 
     def test_encode_with_schema_id(self):
         adv = Util.parse_schema_from_string(data_gen.ADVANCED_SCHEMA)
+        subject = 'test_adv'
+        adv_schema_id = self.client.register(subject, adv)
+        records = data_gen.ADVANCED_ITEMS
+        for record in records:
+            message = self.ms.encode_record_with_schema_id(adv_schema_id, adv, record)
+            self.assertMessageIsSame(message, record, adv_schema_id)
+
+    def test_encode_record_for_topic(self):
         basic = Util.parse_schema_from_string(data_gen.BASIC_SCHEMA)
         subject = 'test'
         schema_id = self.client.register(subject, basic)
 
         records = data_gen.BASIC_ITEMS
         for record in records:
-            message = self.ms.encode_record_with_schema_id(schema_id, record)
-            self.assertMessageIsSame(message, record, schema_id)
-
-        subject = 'test_adv'
-        adv_schema_id = self.client.register(subject, adv)
-        self.assertNotEqual(adv_schema_id, schema_id)
-        records = data_gen.ADVANCED_ITEMS
-        for record in records:
-            message = self.ms.encode_record_with_schema_id(adv_schema_id, record)
-            self.assertMessageIsSame(message, record, adv_schema_id)
-
-
-    def test_encode_record_for_topic(self):
-        topic = 'test'
-        basic = Util.parse_schema_from_string(data_gen.BASIC_SCHEMA)
-        subject = 'test-value'
-        schema_id = self.client.register(subject, basic)
-
-        records = data_gen.BASIC_ITEMS
-        for record in records:
-            message = self.ms.encode_record_for_topic(topic, record)
+            message = self.ms.encode_record_for_topic(subject, record)
             self.assertMessageIsSame(message, record ,schema_id)
 
     def test_encode_record_with_schema(self):
-        topic = 'test'
         basic = Util.parse_schema_from_string(data_gen.BASIC_SCHEMA)
-        subject = 'test-value'
+        subject = 'test'
         schema_id = self.client.register(subject, basic)
         records = data_gen.BASIC_ITEMS
         for record in records:
-            message = self.ms.encode_record_with_schema(topic, basic, record)
+            message = self.ms.encode_record_with_schema(subject, basic, record)
             self.assertMessageIsSame(message, record ,schema_id)
+
+    def test_decode_record(self):
+        basic = Util.parse_schema_from_string(data_gen.BASIC_SCHEMA)
+        subject = 'test'
+        # schema_id = self.client.register(subject, basic)
+        records = data_gen.BASIC_ITEMS
+        for record in records:
+            encoded = self.ms.encode_record_with_schema(subject, basic, record)
+            decoded = self.ms.decode_message(encoded)
+            self.assertEqual(decoded, record)
 
 def suite():
     return unittest.TestLoader().loadTestsFromTestCase(TestMessageSerializer)

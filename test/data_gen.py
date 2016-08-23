@@ -28,9 +28,7 @@ ADVANCED_SCHEMA = load_schema_file('adv_schema.avsc')
 
 def create_adv_item(i):
     friends = map(create_basic_item, range(1,3))
-    family = map(create_basic_item, range(1,3))
     basic = create_basic_item(i)
-    basic['family'] = dict(map(lambda bi: (bi['name'],bi), family))
     basic['friends'] = dict(map(lambda bi: (bi['name'],bi), friends))
     return basic
 

@@ -47,15 +47,6 @@
                     ]
                 }
             }
-        },
-        {
-            "name" : "family",
-            "doc" : "family",
-            "type" : {
-                "namespace" : "python.test.advanced",
-                "type" : "map",
-                "values" : "basicPerson"
-            }
         }
     ]
 }

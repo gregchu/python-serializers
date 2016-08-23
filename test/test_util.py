@@ -1,8 +1,9 @@
 import unittest2 as unittest
 import data_gen
+import setup_test_path
 
 from avro import schema
-from confluent.schemaregistry.serializers import Util
+from datamountaineer.schemaregistry.client import Util
 
 class TestUtil(unittest.TestCase):
     def test_schema_from_string(self):

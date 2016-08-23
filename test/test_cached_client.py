@@ -1,11 +1,11 @@
 import unittest2 as unittest
-import setup_test_path
 import data_gen
 import mock_registry
 import time
+import setup_test_path
 
-from confluent.schemaregistry.client import CachedSchemaRegistryClient
-from confluent.schemaregistry.serializers import Util
+from datamountaineer.schemaregistry.client import CachedSchemaRegistryClient
+from datamountaineer.schemaregistry.serializers import Util
 
 class TestCacheSchemaRegistryClient(unittest.TestCase):
 
