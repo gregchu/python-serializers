@@ -1,6 +1,6 @@
 import unittest2 as unittest
-import data_gen
 import setup_test_path
+import data_gen
 
 from avro import schema
 from datamountaineer.schemaregistry.client import Util

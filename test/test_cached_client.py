@@ -1,8 +1,8 @@
 import unittest2 as unittest
+import setup_test_path
 import data_gen
 import mock_registry
 import time
-import setup_test_path
 
 from datamountaineer.schemaregistry.client import CachedSchemaRegistryClient
 from datamountaineer.schemaregistry.serializers import Util
