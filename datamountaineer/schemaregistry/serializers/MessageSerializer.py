@@ -1,11 +1,10 @@
 from fastavro.reader import read_data
 from fastavro import dump
 import io
-import json
 import struct
-import sys
 
 from . import SerializerError
+from datamountaineer.schemaregistry.client import ClientError
 
 MAGIC_BYTE = 0
 
@@ -31,7 +30,11 @@ class MessageSerializer(object):
     def __init__(self, registry_client):
         self.registry_client = registry_client
         self.id_to_decoder_func = { }
-        # self.id_to_writers = { }
+
+    def _set_subject(self, subject, is_key=False):
+        subject_suffix = ('-key' if is_key else '-value')
+        # get the latest schema for the subject
+        return (subject + subject_suffix)
 
     def encode_record_with_schema(self, topic, schema, record, is_key=False):
         """
@@ -42,9 +45,9 @@ class MessageSerializer(object):
         """
         if not isinstance(record, dict):
             raise SerializerError("record must be a dictionary")
-        subject_suffix = ('-key' if is_key else '-value')
-        # get the latest schema for the subject
-        subject = topic + subject_suffix
+
+        subject = self._set_subject(topic, is_key)
+
         # register it
         try:
             schema_id = self.registry_client.register(subject, schema)
@@ -57,7 +60,7 @@ class MessageSerializer(object):
 
         # cache writer
         # self.id_to_writers[schema_id] = io.DatumWriter(schema)
-        return self.encode_record_with_schema_id(schema_id, record)
+        return self.encode_record_with_schema_id(schema_id, schema, record)
 
     # subject = topic + suffix
     def encode_record_for_topic(self, topic, record, is_key=False):
@@ -68,52 +71,32 @@ class MessageSerializer(object):
         """
         if not isinstance(record, dict):
             raise SerializerError("record must be a dictionary")
-        subject_suffix = ('-key' if is_key else '-value')
-        # get the latest schema for the subject
-        subject = topic + subject_suffix
+
+        subject = self._set_subject(topic, is_key)
+
         try:
             schema_id,schema,version = self.registry_client.get_latest_schema(subject)
         except ClientError as e:
             message = "Unable to retrieve schema id for subject %s" % (subject)
             raise SerializerError(message)
         else:
-            # cache writer
-            # self.id_to_writers[schema_id] = io.DatumWriter(schema)
-            return self.encode_record_with_schema_id(schema_id, record)
+            return self.encode_record_with_schema_id(schema_id, schema, record)
 
-    def encode_record_with_schema_id(self, schema_id, record):
+    def encode_record_with_schema_id(self, schema_id, schema, record):
         """
         Encode a record with a given schema id.  The record must
         be a python dictionary.
         """
         if not isinstance(record, dict):
             raise SerializerError("record must be a dictionary")
-        # use slow avro
-        if schema_id not in self.id_to_writers:
-            # get the writer + schema
-            try:
-                schema = self.registry_client.get_by_id(schema_id)
-                if not schema:
-                    raise SerializerError("Schema does not exist")
-                self.id_to_writers[schema_id] = io.DatumWriter(schema)
-            except ClientError as e:
-                raise SerializerError("Error fetching schema from registry")
 
-        # get the writer
-        writer = self.id_to_writers[schema_id]
         with ContextBytesIO() as outf:
             # write the header
             # magic byte
             outf.write(struct.pack('b',MAGIC_BYTE))
             # write the schema ID in network byte order (big end)
             outf.write(struct.pack('>I',schema_id))
-            # # write the record to the rest of it
-            # # Create an encoder that we'll write to
-            # encoder = io.BinaryEncoder(outf)
-            # # write the magic byte
-            # # write the object in 'obj' as Avro to the fake file...
-            # writer.write(record, encoder)
-            dump(outf, record, schema)
+            dump(outf, record, schema.to_json())
             return outf.getvalue()
 
 
@@ -124,6 +107,7 @@ class MessageSerializer(object):
 
         # fetch from schema reg
         try:
+            # first call will cache in the client
             schema = self.registry_client.get_by_id(schema_id)
         except:
             schema = None
@@ -137,11 +121,6 @@ class MessageSerializer(object):
         # try to use fast avro
         try:
             schema_dict = schema.to_json()
-            obj = read_data(payload, schema_dict)
-            # here means we passed so this is something fastavro can do
-            # seek back since it will be called again for the
-            # same payload - one time hit
-
             payload.seek(curr_pos)
             decoder_func = lambda p: read_data(p, schema_dict)
             self.id_to_decoder_func[schema_id] = decoder_func

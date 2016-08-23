@@ -3,7 +3,7 @@ import re
 from threading import Thread
 import data_gen
 import setup_test_path
-from confluent.schemaregistry.serializers import Util
+from datamountaineer.schemaregistry.serializers import Util
 import json
 
 class ReqHandler(http.server.BaseHTTPRequestHandler):
@@ -26,11 +26,11 @@ class MockServer(http.server.HTTPServer, object):
         self.all_routes = {
             'GET' : [
                 (r"/schemas/ids/(\d+)", 'get_schema_by_id'),
-                (r"/subjects/(\w+)/versions/latest", 'get_latest')
+                (r"/subjects/(\w+-\w+)/versions/latest", 'get_latest')
             ],
             'POST' : [
-                (r"/subjects/(\w+)/versions", 'register'),
-                (r"/subjects/(\w+)", 'get_version')
+                (r"/subjects/(\w+-\w+)/versions", 'register'),
+                (r"/subjects/(\w+-\w+)", 'get_version')
             ]
         }
         self.schema =  data_gen.load_schema_file('basic_schema.avsc')
@@ -56,7 +56,8 @@ class MockServer(http.server.HTTPServer, object):
             if m:
                 func = getattr(self, r[1])
                 status,body = func(req, m.groups())
-                return self._send_response(req, status, body)
+                ret = self._send_response(req, status, body)
+                return ret
 
         # here means we got a bad req
         status,body = self._create_error("bad path specified")
