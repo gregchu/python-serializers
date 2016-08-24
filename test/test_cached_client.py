@@ -4,7 +4,7 @@ from test import data_gen
 from test import mock_registry
 import time
 
-from datamountaineer.schemaregistry.client import CachedSchemaRegistryClient
+from datamountaineer.schemaregistry.client import SchemaRegistryClient
 from datamountaineer.schemaregistry.serializers import Util
 
 class TestCacheSchemaRegistryClient(unittest.TestCase):
@@ -12,8 +12,8 @@ class TestCacheSchemaRegistryClient(unittest.TestCase):
     def setUp(self):
         self.server = mock_registry.ServerThread(9001)
         self.server.start()
-        self.client = CachedSchemaRegistryClient('http://127.0.0.1:9001')
         time.sleep(1)
+        self.client = SchemaRegistryClient('http://127.0.0.1:9001')
 
     def tearDown(self):
         self.server.shutdown()

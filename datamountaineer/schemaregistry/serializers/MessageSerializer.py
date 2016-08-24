@@ -99,12 +99,7 @@ class MessageSerializer(object):
             dump(outf, record, schema.to_json())
             return outf.getvalue()
 
-
-    # Decoder support
-    def _get_decoder_func(self, schema_id, payload):
-        if schema_id in self.id_to_decoder_func:
-            return self.id_to_decoder_func[schema_id]
-
+    def get_schema(self, schema_id):
         # fetch from schema reg
         try:
             # first call will cache in the client
@@ -115,6 +110,15 @@ class MessageSerializer(object):
         if not schema:
             err = "unable to fetch schema with id %d" % (schema_id)
             raise SerializerError(err)
+
+        return schema
+
+    # Decoder support
+    def _get_decoder_func(self, schema_id, payload):
+        if schema_id in self.id_to_decoder_func:
+            return self.id_to_decoder_func[schema_id]
+
+        schema = self.get_schema(schema_id)
 
         curr_pos = payload.tell()
 
