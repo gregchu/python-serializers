@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/datamountaineer/python-serializers.svg?branch=master)](https://travis-ci.org/datamountaineer/python-serializers)
+[![PyPI](https://img.shields.io/badge/PyPi-0.1-blue.svg)](https://pypi.python.org/pypi/datamountaineer-schemaregistry/0.1)
 
 # Python Schema Registry Client and Serializers/Deserializers
 
@@ -13,17 +14,22 @@ The serializers/deserializers use [fastavro](https://github.com/tebeka/fastavro)
 
 Run `python setup.py install` from the source root.
 
+or via pip
+
+```
+pip install 
+```
 
 # Example Usage
 
 Setup
 
 ```python
-from datamountaineer.schemaregistry.client import CachedSchemaRegistryClient
+from datamountaineer.schemaregistry.client import SchemaRegistryClient
 from datamountaineer.schemaregistry.serializers import MessageSerializer, Util
 
 # Initialize the client
-client = CachedSchemaRegistryClient(url='http://registry.host')
+client = SchemaRegistryClient(url='http://registry.host')
 ```
 
 Schema operations
