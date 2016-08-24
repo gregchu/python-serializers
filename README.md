@@ -7,6 +7,8 @@ A Python client used to interact with [Confluent](http://confluent.io/)'s
 
 The API is heavily based off of the existing Java API of [Confluent schema registry](https://github.com/confluentinc/schema-registry).
 
+The serializers/deserializers use [fastavro](https://github.com/tebeka/fastavro) for reading and writing.
+
 # Installation
 
 Run `python setup.py install` from the source root.
