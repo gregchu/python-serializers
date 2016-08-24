@@ -1,8 +1,8 @@
 import unittest2 as unittest
-import setup_test_path
-import data_gen
+from . import setup_test_path
+from . import data_gen
 import struct
-import mock_registry
+from . import mock_registry
 from datamountaineer.schemaregistry.serializers import MessageSerializer, Util
 from datamountaineer.schemaregistry.client import CachedSchemaRegistryClient
 

@@ -1,8 +1,8 @@
 import http.server
 import re
 from threading import Thread
-import setup_test_path
-import data_gen
+from . import setup_test_path
+from . import data_gen
 from datamountaineer.schemaregistry.serializers import Util
 import json
 
