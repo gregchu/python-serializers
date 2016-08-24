@@ -11,28 +11,22 @@ The API is heavily based off of the existing Java API of [Confluent schema regis
 
 Run `python setup.py install` from the source root.
 
-This library will be available via `pip` in the future.
 
 # Example Usage
 
+Setup
 
 ```python
-from confluent.schemaregistry.client import CachedSchemaRegistryClient
-from confluent.schemaregistry.serializers import MessageSerializer, Util
-
-# Note that some methods may throw exceptions if
-# the registry cannot be reached, decoding/encoding fails,
-# or IO fails
-
-# some helper methods in util to get a schema
-avro_schema = Util.parse_schema_from_file('/path/to/schema.avsc')
-avro_schema = Util.parse_schema_from_string(open('/path/to/schema.avsc').read())
+from datamountaineer.schemaregistry.client import CachedSchemaRegistryClient
+from datamountaineer.schemaregistry.serializers import MessageSerializer, Util
 
 # Initialize the client
 client = CachedSchemaRegistryClient(url='http://registry.host')
+```
 
-# Schema operations
+Schema operations
 
+```python
 # register a schema for a subject
 schema_id = client.register('my_subject', avro_schema)
 
@@ -51,41 +45,40 @@ is_compatible = client.test_compatibility('my_subject', another_schema)
 # One of NONE, FULL, FORWARD, BACKWARD
 new_level = client.update_compatibility('NONE','my_subject')
 current_level = client.get_compatibility('my_subject')
+```
 
+Encoding to write back to Kafka. Encoding by id is the most efficent as it avoids an extra trip to the Schema Registry to
+lookup the schema id.
+
+```python
 # Message operations
 
 # encode a record to put onto kafka
 serializer = MessageSerializer(client)
+
+#build your avro
 record = get_obj_to_put_into_kafka()
 
 # use the schema id directly
 encoded = serializer.encode_record_with_schema_id(schema_id, record)
+```
+
+Encode by schema only.
+
+```python
 # use an existing schema and topic
 # this will register the schema to the right subject based
 # on the topic name and then serialize
 encoded = serializer.encode_record_with_schema('my_topic', avro_schema, record)
+```
 
-# encode a record with the latest schema for the topic
-# this is not efficient as it queries for the latest
-# schema each time
-encoded = serializer.encode_record_for_topic('my_kafka_topic', record)
+Reading messages
 
-
+```python
 # decode a message from kafka
 message = get_message_from_kafka()
 decoded_object = serializer.decode_message(message)
-
-
 ```
-
-# Running Tests
-
-```
-pip install unittest2
-unit2 discover -s test
-```
-
-Tests use unittest2 due to unittest being different between 2.6 and 2.7.
 
 # License
 
