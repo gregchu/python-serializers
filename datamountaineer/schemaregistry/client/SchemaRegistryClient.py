@@ -8,7 +8,7 @@ from ..serializers import Util
 # Common accept header sent
 ACCEPT_HDR="application/vnd.schemaregistry.v1+json, application/vnd.schemaregistry+json, application/json"
 
-class CachedSchemaRegistryClient(object):
+class SchemaRegistryClient(object):
     """
     A client that talks to a Schema Registry over HTTP
 

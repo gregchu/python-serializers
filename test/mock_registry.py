@@ -40,7 +40,7 @@ class MockServer(http.server.HTTPServer, object):
         resp.send_header("Content-Type","application/json")
         resp.end_headers()
         resp.wfile.write(json.dumps(body).encode('utf-8'))
-        # resp.finish()
+        resp.finish()
 
     def _create_error(self, msg, status=400, err_code=1):
         return (status, {
