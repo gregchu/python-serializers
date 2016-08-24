@@ -1,7 +1,7 @@
 import unittest2 as unittest
-import setup_test_path
-import data_gen
-import mock_registry
+from test import setup_test_path
+from test import data_gen
+from test import mock_registry
 import time
 
 from datamountaineer.schemaregistry.client import CachedSchemaRegistryClient
