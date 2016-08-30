@@ -2,6 +2,7 @@ from fastavro.reader import read_data
 from fastavro import dump
 import io
 import struct
+import avro.io
 
 from . import SerializerError
 from datamountaineer.schemaregistry.client import ClientError
@@ -27,9 +28,11 @@ class MessageSerializer(object):
     All encode_* methods return a buffer that can be sent to kafka.
     All decode_* methods expect a buffer received from kafka.
     """
-    def __init__(self, registry_client):
+    def __init__(self, registry_client, fast_avro=True):
         self.registry_client = registry_client
         self.id_to_decoder_func = { }
+        self.id_to_writers = { }
+        self.fast_avro = fast_avro
 
     def _set_subject(self, subject, is_key=False):
         subject_suffix = ('-key' if is_key else '-value')
@@ -58,8 +61,9 @@ class MessageSerializer(object):
             message = "Unable to retrieve schema id for subject %s" % (subject)
             raise SerializerError(message)
 
-        # cache writer
-        # self.id_to_writers[schema_id] = io.DatumWriter(schema)
+        if not self.fast_avro:
+            self.id_to_writers[schema_id] = avro.io.DatumWriter(schema)
+
         return self.encode_record_with_schema_id(schema_id, schema, record)
 
     # subject = topic + suffix
@@ -80,6 +84,8 @@ class MessageSerializer(object):
             message = "Unable to retrieve schema id for subject %s" % (subject)
             raise SerializerError(message)
         else:
+            if not self.fast_avro:
+                self.id_to_writers[schema_id] = avro.io.DatumWriter(schema)
             return self.encode_record_with_schema_id(schema_id, schema, record)
 
     def encode_record_with_schema_id(self, schema_id, schema, record):
@@ -90,13 +96,29 @@ class MessageSerializer(object):
         if not isinstance(record, dict):
             raise SerializerError("record must be a dictionary")
 
+        if not self.fast_avro:
+            if  schema_id not in self.id_to_writers:
+                # get the writer + schema
+                try:
+                    schema = self.registry_client.get_by_id(schema_id)
+                    if not schema:
+                        raise SerializerError("Schema does not exist")
+                    self.id_to_writers[schema_id] = avro.io.DatumWriter(schema)
+                except ClientError as e:
+                    raise SerializerError("Error fetching schema from registry")
+
         with ContextBytesIO() as outf:
             # write the header
             # magic byte
             outf.write(struct.pack('b',MAGIC_BYTE))
             # write the schema ID in network byte order (big end)
             outf.write(struct.pack('>I',schema_id))
-            dump(outf, record, schema.to_json())
+            if self.fast_avro:
+                dump(outf, record, schema.to_json())
+            else:
+                writer = self.id_to_writers[schema_id]
+                encoder = avro.io.BinaryEncoder(outf)
+                writer.write(record, encoder)
             return outf.getvalue()
 
     def get_schema(self, schema_id):
@@ -122,15 +144,25 @@ class MessageSerializer(object):
 
         curr_pos = payload.tell()
 
-        # try to use fast avro
-        try:
-            schema_dict = schema.to_json()
-            payload.seek(curr_pos)
-            decoder_func = lambda p: read_data(p, schema_dict)
-            self.id_to_decoder_func[schema_id] = decoder_func
-            return self.id_to_decoder_func[schema_id]
-        except:
-            pass
+        if self.fast_avro:
+            # try to use fast avro
+            try:
+                schema_dict = schema.to_json()
+                payload.seek(curr_pos)
+                decoder_func = lambda p: read_data(p, schema_dict)
+                self.id_to_decoder_func[schema_id] = decoder_func
+                return self.id_to_decoder_func[schema_id]
+            except:
+                payload.seek(curr_pos)
+                pass
+
+        avro_reader = avro.io.DatumReader(schema)
+        def decoder(p):
+            bin_decoder = avro.io.BinaryDecoder(p)
+            return avro_reader.read(bin_decoder)
+
+        self.id_to_decoder_func[schema_id] = decoder
+        return self.id_to_decoder_func[schema_id]
 
     def decode_message(self, message):
         """

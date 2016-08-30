@@ -17,8 +17,10 @@ class TestMessageSerializer(unittest.TestCase):
         self.client.get_by_id = MagicMock(retrun_value=self.schema)
         self.client.get_latest_schema = MagicMock(return_value=(1, self.schema, 1))
         self.client.get_version = MagicMock(return_value=1)
-        self.ms = MessageSerializer(self.client)
+        self.ms = MessageSerializer(self.client,fast_avro=True)
+        self.msslow = MessageSerializer(self.client,fast_avro=False)
         self.ms.get_schema = MagicMock(return_value=self.schema)
+        self.msslow.get_schema = MagicMock(return_value=self.schema)
 
 
     def assertMessageIsSame(self, message, expected, schema_id):
@@ -30,12 +32,17 @@ class TestMessageSerializer(unittest.TestCase):
         decoded = self.ms.decode_message(message)
         self.assertTrue(decoded)
         self.assertEqual(decoded, expected)
+        decoded = self.msslow.decode_message(message)
+        self.assertTrue(decoded)
+        self.assertEqual(decoded, expected)
 
     def test_encode_with_schema_id(self):
         adv_schema_id = self.client.register(self.subject, self.schema)
         records = data_gen.ADVANCED_ITEMS
         for record in records:
             message = self.ms.encode_record_with_schema_id(adv_schema_id, self.schema, record)
+            self.assertMessageIsSame(message, record, adv_schema_id)
+            message = self.msslow.encode_record_with_schema_id(adv_schema_id, self.schema, record)
             self.assertMessageIsSame(message, record, adv_schema_id)
 
     def test_encode_record_for_topic(self):
@@ -44,6 +51,8 @@ class TestMessageSerializer(unittest.TestCase):
         for record in records:
             message = self.ms.encode_record_for_topic(self.subject, record)
             self.assertMessageIsSame(message, record ,schema_id)
+            message = self.msslow.encode_record_for_topic(self.subject, record)
+            self.assertMessageIsSame(message, record ,schema_id)
 
     def test_encode_record_with_schema(self):
         schema_id = self.client.register(self.subject, self.schema)
@@ -51,12 +60,17 @@ class TestMessageSerializer(unittest.TestCase):
         for record in records:
             message = self.ms.encode_record_with_schema(self.subject, self.schema, record)
             self.assertMessageIsSame(message, record ,schema_id)
+            message = self.msslow.encode_record_with_schema(self.subject, self.schema, record)
+            self.assertMessageIsSame(message, record ,schema_id)
 
     def test_decode_record(self):
         records = data_gen.ADVANCED_ITEMS
         for record in records:
             encoded = self.ms.encode_record_with_schema(self.subject, self.schema, record)
             decoded = self.ms.decode_message(encoded)
+            self.assertEqual(decoded, record)
+            encoded = self.msslow.encode_record_with_schema(self.subject, self.schema, record)
+            decoded = self.msslow.decode_message(encoded)
             self.assertEqual(decoded, record)
 
 def suite():
