@@ -8,7 +8,8 @@ A Python client used to interact with [Confluent](http://confluent.io/)'s
 
 The API is heavily based off of the existing Java API of [Confluent schema registry](https://github.com/confluentinc/schema-registry).
 
-The serializers/deserializers use [fastavro](https://github.com/tebeka/fastavro) for reading and writing.
+The serializers/deserializers use [fastavro](https://github.com/tebeka/fastavro) for reading and writing by default.
+When one does not want to use `fastavro`, it can be disabled by providing `fast_avro=False` to the `MessageSerializer` constructor and Apache Avro's `avro` package will be used instead.
 
 # Installation
 
