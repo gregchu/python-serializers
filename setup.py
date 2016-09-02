@@ -6,14 +6,14 @@ except ImportError:
 
 setup(
     name = 'datamountaineer-schemaregistry',
-    version = '0.1',
+    version = '0.2',
     packages = ['datamountaineer',
                 'datamountaineer.schemaregistry',
                 'datamountaineer.schemaregistry.serializers',
                 'datamountaineer.schemaregistry.client'],
 
     url = 'https://github.com/datamountaineer/python-serializers',
-    download_url='https://github.com/datamountaineer/python-serializers/archive/0.1.tar.gz',
+    download_url='https://github.com/datamountaineer/python-serializers/archive/0.2.tar.gz',
 
     install_requires = ['fastavro', 'avro-python3'],
 
