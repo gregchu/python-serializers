@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/datamountaineer/python-serializers.svg?branch=master)](https://travis-ci.org/datamountaineer/python-serializers)
-[![PyPI](https://img.shields.io/badge/PyPi-0.1-blue.svg)](https://pypi.python.org/pypi/datamountaineer-schemaregistry/0.1)
+[![PyPI](https://img.shields.io/badge/PyPi-0.2-blue.svg)](https://pypi.python.org/pypi/datamountaineer-schemaregistry/0.2)
 
 # Python Schema Registry Client and Serializers/Deserializers
 
