@@ -18,7 +18,7 @@ Run `python setup.py install` from the source root.
 or via pip
 
 ```
-pip install 
+pip3 install datamountaineer-schemaregistry 
 ```
 
 # Example Usage
