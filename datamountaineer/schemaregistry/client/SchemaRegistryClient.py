@@ -25,7 +25,7 @@ class SchemaRegistryClient(object):
     def _send_request(self, url, method='GET', body=None, headers=None):
         if body:
             body = json.dumps(body).encode('utf-8')
-	
+
         new_req = urllib.request.Request(url, data=body)
         # must be callable
         new_req.get_method = lambda: method
@@ -151,6 +151,30 @@ class SchemaRegistryClient(object):
         self._cache_schema(schema, schema_id)
         return (schema_id, schema, version)
 
+    def list_all(self):
+        """
+        Get a list of all the key and value schemas in the registry.
+        """
+        keys = []
+        values = []
+
+        url = '/'.join([self.url,'subjects'])
+        try:
+            result,meta,code = self._send_request(url)
+        except ClientError as e:
+            if e.http_code == 404:
+                return (keys, values)
+            raise e
+
+        for subject in result:
+            m = re.match("(.*)-(value|key)$", subject)
+            if m:
+                if m.groups()[1] == 'key':
+                    keys.append(m.groups()[0])
+                else:
+                    values.append(m.groups()[0])
+
+        return (keys, values)
 
     def get_version(self, subject, avro_schema, is_key=False):
         """
