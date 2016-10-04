@@ -151,9 +151,9 @@ class SchemaRegistryClient(object):
         self._cache_schema(schema, schema_id)
         return (schema_id, schema, version)
 
-    def get_all(self):
+    def list_all(self):
         """
-        Get all the key and value schemas in the registry.
+        Get a list of all the key and value schemas in the registry.
         """
         keys = []
         values = []
