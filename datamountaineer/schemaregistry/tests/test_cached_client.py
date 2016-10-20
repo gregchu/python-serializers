@@ -1,8 +1,8 @@
-import unittest
-from test import setup_test_path
-from test import data_gen
-from test import mock_registry
 import time
+import unittest
+
+from datamountaineer.schemaregistry.tests import data_gen
+from datamountaineer.schemaregistry.tests import mock_registry
 
 from datamountaineer.schemaregistry.client import SchemaRegistryClient
 from datamountaineer.schemaregistry.serializers import Util
@@ -78,7 +78,3 @@ class TestCacheSchemaRegistryClient(unittest.TestCase):
 
         fetched = client.get_by_id(schema_id)
         self.assertEqual(fetched, parsed)
-
-
-def suite():
-    return unittest.TestLoader().loadTestsFromTestCase(BaseTest)

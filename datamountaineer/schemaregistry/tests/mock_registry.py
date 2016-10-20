@@ -1,10 +1,11 @@
-import http.server
 import re
-from threading import Thread
-from . import setup_test_path
-from . import data_gen
-from datamountaineer.schemaregistry.serializers import Util
 import json
+import http.server
+from threading import Thread
+
+from datamountaineer.schemaregistry.tests import data_gen
+
+from datamountaineer.schemaregistry.serializers import Util
 
 
 class ReqHandler(http.server.BaseHTTPRequestHandler):

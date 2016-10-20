@@ -1,9 +1,12 @@
-import unittest
-from test import setup_test_path
-from test import data_gen
 import struct
-from datamountaineer.schemaregistry.serializers import MessageSerializer, Util
+import unittest
+
+from datamountaineer.schemaregistry.tests import data_gen
 from datamountaineer.schemaregistry.client import SchemaRegistryClient
+from datamountaineer.schemaregistry.serializers import (MessageSerializer,
+                                                        Util,
+                                                        SerializerError)
+
 from mock import MagicMock
 
 
@@ -72,7 +75,3 @@ class TestMessageSerializer(unittest.TestCase):
             encoded = self.msslow.encode_record_with_schema(self.subject, self.schema, record)
             decoded = self.msslow.decode_message(encoded)
             self.assertEqual(decoded, record)
-
-
-def suite():
-    return unittest.TestLoader().loadTestsFromTestCase(TestMessageSerializer)

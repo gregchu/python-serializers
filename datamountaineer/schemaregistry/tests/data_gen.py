@@ -1,5 +1,5 @@
-import random
 import os
+import random
 import os.path
 
 NAMES = ['stefan', 'melanie', 'nick', 'darrel', 'kent', 'simon']
