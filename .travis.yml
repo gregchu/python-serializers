@@ -2,12 +2,11 @@ language: python
 
 python:
   - "3.5"
-  - "3.6"
+  - "3.6-dev"
 
 # command to install dependencies
 install:
   - "pip install -r requirements.txt"
-  - "pip install mock pytest pytest-sugar"
 
 # command to run tests
 script: py.test -v
