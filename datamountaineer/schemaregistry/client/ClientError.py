@@ -1,7 +1,10 @@
-VALID_LEVELS=['NONE','FULL','FORWARD','BACKWARD']
+VALID_LEVELS = ['NONE', 'FULL', 'FORWARD', 'BACKWARD']
+
 
 class ClientError(Exception, object):
+
     """Error thrown by Schema Registry clients"""
+
     def __init__(self, message, http_code=-1):
         self.message = message
         self.http_code = http_code

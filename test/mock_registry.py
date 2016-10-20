@@ -6,8 +6,10 @@ from . import data_gen
 from datamountaineer.schemaregistry.serializers import Util
 import json
 
+
 class ReqHandler(http.server.BaseHTTPRequestHandler):
     protocol_version = "HTTP/1.0"
+
     def do_GET(self):
         self.server._run_routes(self)
 
@@ -19,6 +21,7 @@ class ReqHandler(http.server.BaseHTTPRequestHandler):
 
 
 class MockServer(http.server.HTTPServer, object):
+
     def __init__(self, *args, **kwargs):
         super(MockServer, self).__init__(*args, **kwargs)
         self.counts = { }
@@ -33,11 +36,11 @@ class MockServer(http.server.HTTPServer, object):
                 (r"/subjects/(\w+-\w+)", 'get_version')
             ]
         }
-        self.schema =  data_gen.load_schema_file('basic_schema.avsc')
+        self.schema = data_gen.load_schema_file('basic_schema.avsc')
 
     def _send_response(self, resp, status, body):
         resp.send_response(status)
-        resp.send_header("Content-Type","application/json")
+        resp.send_header("Content-Type", "application/json")
         resp.end_headers()
         resp.wfile.write(json.dumps(body).encode('utf-8'))
 
@@ -54,19 +57,19 @@ class MockServer(http.server.HTTPServer, object):
             m = re.match(r[0], req.path)
             if m:
                 func = getattr(self, r[1])
-                status,body = func(req, m.groups())
+                status, body = func(req, m.groups())
                 ret = self._send_response(req, status, body)
                 return ret
 
         # here means we got a bad req
-        status,body = self._create_error("bad path specified")
+        status, body = self._create_error("bad path specified")
         self._send_response(req, status, body)
 
     def get_schema_by_id(self, req, groups):
         result = {
             "schema" : self.schema
         }
-        return (200,result)
+        return (200, result)
 
     def _get_identity_schema(self, avro_schema):
         return json.dumps(avro_schema.to_json())
@@ -80,7 +83,7 @@ class MockServer(http.server.HTTPServer, object):
         if not schema:
             return None
         try:
-            avro_schema =  Util.parse_schema_from_string(schema)
+            avro_schema = Util.parse_schema_from_string(schema)
             return self._get_identity_schema(avro_schema)
         except:
             return None
@@ -118,20 +121,21 @@ class MockServer(http.server.HTTPServer, object):
         }
         return (200, result)
 
-
     def add_count(self, path):
         if path not in self.counts:
             self.counts[path] = 0
         self.counts[path] += 1
 
+
 class ServerThread(Thread):
+
     def __init__(self, port):
         Thread.__init__(self)
         self.server = None
         self.port = port
 
     def run(self):
-        self.server = MockServer(('127.0.0.1',self.port), ReqHandler)
+        self.server = MockServer(('127.0.0.1', self.port), ReqHandler)
         self.server.serve_forever()
 
     def shutdown(self):

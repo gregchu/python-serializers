@@ -7,6 +7,7 @@ import time
 from datamountaineer.schemaregistry.client import SchemaRegistryClient
 from datamountaineer.schemaregistry.serializers import Util
 
+
 class TestCacheSchemaRegistryClient(unittest.TestCase):
 
     def setUp(self):
@@ -58,7 +59,6 @@ class TestCacheSchemaRegistryClient(unittest.TestCase):
         dupe_latest = client.get_latest_schema(subject)
         self.assertEqual(latest, dupe_latest)
 
-
     def test_getters(self):
         parsed = Util.parse_schema_from_string(data_gen.BASIC_SCHEMA)
         client = self.client
@@ -68,9 +68,9 @@ class TestCacheSchemaRegistryClient(unittest.TestCase):
         schema = client.get_by_id(1)
         # self.assertEqual(schema, parsed)
         latest = client.get_latest_schema(subject)
-        self.assertEqual(latest, (1,schema,1))
+        self.assertEqual(latest, (1, schema, 1))
 
-        # # register
+        # register
         schema_id = client.register(subject, parsed)
         latest = client.get_latest_schema(subject)
         version = client.get_version(subject, parsed)
@@ -78,6 +78,7 @@ class TestCacheSchemaRegistryClient(unittest.TestCase):
 
         fetched = client.get_by_id(schema_id)
         self.assertEqual(fetched, parsed)
+
 
 def suite():
     return unittest.TestLoader().loadTestsFromTestCase(BaseTest)

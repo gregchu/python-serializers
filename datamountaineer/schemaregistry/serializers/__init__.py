@@ -1,5 +1,7 @@
 class SerializerError(Exception):
+
     """Generic error from serializer package"""
+
     def __init__(self, message):
         self.message = message
 
