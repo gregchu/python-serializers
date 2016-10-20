@@ -1,4 +1,4 @@
-import unittest2 as unittest
+import unittest
 from test import setup_test_path
 from test import data_gen
 from test import mock_registry

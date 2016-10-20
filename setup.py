@@ -22,5 +22,5 @@ setup(
     author_email = 'andrew@datamountaineer.com',
     description = 'DataMountaineer Python 3.5 Confluent Schema Registry Client',
     keywords = 'datamountaineer schema registry schemaregistry confluent avro',
-    test_requires = ['unittest2', 'mock']
+    tests_require = ['mock']
 )

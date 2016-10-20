@@ -89,6 +89,15 @@ message = get_message_from_kafka()
 decoded_object = serializer.decode_message(message)
 ```
 
+# Testing
+
+```
+pip3 install pytest mock
+py.test -s -rxs -v
+```
+
+
+
 # License
 
 The project is licensed under the Apache 2 license.
