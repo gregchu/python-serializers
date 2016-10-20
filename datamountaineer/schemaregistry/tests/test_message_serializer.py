@@ -75,3 +75,24 @@ class TestMessageSerializer(unittest.TestCase):
             encoded = self.msslow.encode_record_with_schema(self.subject, self.schema, record)
             decoded = self.msslow.decode_message(encoded)
             self.assertEqual(decoded, record)
+
+    def test_bad_input(self):
+        adv_schema_id = self.client.register(self.subject, self.schema)
+
+        with self.assertRaises(SerializerError):
+            self.ms.encode_record_with_schema_id(adv_schema_id, self.schema, 'notadict')
+
+        with self.assertRaises(SerializerError):
+            self.ms.encode_record_with_schema_id(adv_schema_id, self.schema, ['notadict'])
+
+        with self.assertRaises(SerializerError):
+            self.ms.encode_record_for_topic(self.subject, 'notadict')
+
+        with self.assertRaises(SerializerError):
+            self.ms.encode_record_for_topic(self.subject, ['notadict'])
+
+        with self.assertRaises(SerializerError):
+            self.ms.encode_record_with_schema(self.subject, self.schema, 'notadict')
+
+        with self.assertRaises(SerializerError):
+            self.ms.encode_record_with_schema(self.subject, self.schema, ['notadict'])

@@ -4,7 +4,7 @@ import io
 import struct
 import avro.io
 
-from . import SerializerError
+from datamountaineer.schemaregistry.serializers import SerializerError
 from datamountaineer.schemaregistry.client import ClientError
 
 MAGIC_BYTE = 0
