@@ -38,3 +38,6 @@ pip-delete-this-directory.txt
 *.ignore.py
 *.avro
 .idea/
+
+# Testing
+.cache

@@ -1,4 +1,6 @@
-import urllib.request, urllib.error, urllib.parse
+import urllib.request
+import urllib.error
+import urllib.parse
 import json
 import sys
 
@@ -6,9 +8,11 @@ from datamountaineer.schemaregistry.client.ClientError import *
 from ..serializers import Util
 
 # Common accept header sent
-ACCEPT_HDR="application/vnd.schemaregistry.v1+json, application/vnd.schemaregistry+json, application/json"
+ACCEPT_HDR = "application/vnd.schemaregistry.v1+json, application/vnd.schemaregistry+json, application/json"
+
 
 class SchemaRegistryClient(object):
+
     """
     A client that talks to a Schema Registry over HTTP
 
@@ -16,6 +20,7 @@ class SchemaRegistryClient(object):
 
     Errors communicating to the server will result in a ClientError being raised.
     """
+
     def __init__(self, url):
         """Construct a client by passing in the base URL of the schema registry server"""
 
@@ -30,10 +35,10 @@ class SchemaRegistryClient(object):
         # must be callable
         new_req.get_method = lambda: method
         # set the accept header
-        new_req.add_header("Accept",ACCEPT_HDR)
+        new_req.add_header("Accept", ACCEPT_HDR)
         if body:
-            new_req.add_header("Content-Length",str(len(body)))
-            new_req.add_header("Content-Type","application/json")
+            new_req.add_header("Content-Length", str(len(body)))
+            new_req.add_header("Content-Type", "application/json")
         # add additional headers if present
         if headers:
             for header_name in headers:
@@ -83,9 +88,9 @@ class SchemaRegistryClient(object):
         """
         subject = self._set_subject(subject, is_key)
 
-        url = '/'.join([self.url,'subjects',subject,'versions'])
+        url = '/'.join([self.url, 'subjects', subject, 'versions'])
         body = { 'schema' : json.dumps(avro_schema.to_json()) }
-        result,meta,code = self._send_request(url, method='POST', body=body)
+        result, meta, code = self._send_request(url, method='POST', body=body)
         schema_id = result['id']
         self._cache_schema(avro_schema, schema_id)
         return schema_id
@@ -96,9 +101,9 @@ class SchemaRegistryClient(object):
         if schema_id in self.id_to_schema:
             return self.id_to_schema[schema_id]
 
-        url = '/'.join([self.url,'schemas','ids',str(schema_id)])
+        url = '/'.join([self.url, 'schemas', 'ids', str(schema_id)])
         try:
-            result,meta,code = self._send_request(url)
+            result, meta, code = self._send_request(url)
         except ClientError as e:
             if e.http_code == 404:
                 return None
@@ -130,7 +135,7 @@ class SchemaRegistryClient(object):
 
         url = '/'.join([self.url, 'subjects', subject, 'versions', 'latest'])
         try:
-            result,meta,code = self._send_request(url)
+            result, meta, code = self._send_request(url)
         except ClientError as e:
             if e.http_code == 404:
                 return (None, None, None)
@@ -158,9 +163,9 @@ class SchemaRegistryClient(object):
         keys = []
         values = []
 
-        url = '/'.join([self.url,'subjects'])
+        url = '/'.join([self.url, 'subjects'])
         try:
-            result,meta,code = self._send_request(url)
+            result, meta, code = self._send_request(url)
         except ClientError as e:
             if e.http_code == 404:
                 return (keys, values)
@@ -186,7 +191,7 @@ class SchemaRegistryClient(object):
         url = '/'.join([self.url, 'subjects', subject])
         body = { 'schema' : json.dumps(avro_schema.to_json()) }
         try:
-            result,meta,code = self._send_request(url, method='POST', body=body)
+            result, meta, code = self._send_request(url, method='POST', body=body)
             schema_id = result['id']
             version = result['version']
             self._cache_schema(avro_schema, schema_id)
@@ -204,15 +209,14 @@ class SchemaRegistryClient(object):
         By default the latest version is checked against.
         """
         subject = self._set_subject(subject, is_key)
-        url = '/'.join([self.url,'compatibility','subjects',subject,
-                        'versions',str(version)])
+        url = '/'.join([self.url, 'compatibility', 'subjects', subject,
+                        'versions', str(version)])
         body = { 'schema' : json.dumps(avro_schema.to_json()) }
         try:
-            result,meta,code = self._send_request(url, method='POST', body=body)
+            result, meta, code = self._send_request(url, method='POST', body=body)
             return result.get('is_compatible')
         except:
             return False
-
 
     def update_compatibility(self, level, subject=None, is_key=False):
         """
@@ -225,13 +229,13 @@ class SchemaRegistryClient(object):
         if level not in VALID_LEVELS:
             raise ClientError("Invalid level specified: %s" % (str(level)))
 
-        url = '/'.join([self.url,'config'])
+        url = '/'.join([self.url, 'config'])
 
         if subject:
             url += '/' + subject
 
         body = { "compatibility" : level }
-        result,meta,code = self._send_request(url, method='PUT', body=body)
+        result, meta, code = self._send_request(url, method='PUT', body=body)
         return result['compatibility']
 
     def get_compatibility(self, subject=None, is_key=False):
@@ -242,12 +246,12 @@ class SchemaRegistryClient(object):
         """
         subject = self._set_subject(subject, is_key)
 
-        url = '/'.join([self.url,'config'])
+        url = '/'.join([self.url, 'config'])
 
         if subject:
             url += '/' + subject
 
-        result,meta,code = self._send_request(url)
+        result, meta, code = self._send_request(url)
         compatibility = result.get('compatibility', None)
         if not compatibility:
             compatbility = result.get('compatibilityLevel')

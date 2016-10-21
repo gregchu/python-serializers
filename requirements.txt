@@ -1,4 +1,2 @@
 fastavro
 avro-python3
-unittest2
-mock

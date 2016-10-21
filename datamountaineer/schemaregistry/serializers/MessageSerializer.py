@@ -4,23 +4,28 @@ import io
 import struct
 import avro.io
 
-from . import SerializerError
+from datamountaineer.schemaregistry.serializers import SerializerError
 from datamountaineer.schemaregistry.client import ClientError
 
 MAGIC_BYTE = 0
 
 
 class ContextBytesIO(io.BytesIO):
+
     """
     Wrapper to allow use of BytesIO via 'with' constructs.
     """
+
     def __enter__(self):
         return self
+
     def __exit__(self, *args):
         self.close()
         return False
 
+
 class MessageSerializer(object):
+
     """
     A helper class that can serialize and deserialize messages
     that need to be encoded or decoded using the schema registry.
@@ -28,6 +33,7 @@ class MessageSerializer(object):
     All encode_* methods return a buffer that can be sent to kafka.
     All decode_* methods expect a buffer received from kafka.
     """
+
     def __init__(self, registry_client, fast_avro=True):
         self.registry_client = registry_client
         self.id_to_decoder_func = { }
@@ -79,7 +85,7 @@ class MessageSerializer(object):
         subject = self._set_subject(topic, is_key)
 
         try:
-            schema_id,schema,version = self.registry_client.get_latest_schema(subject)
+            schema_id, schema, version = self.registry_client.get_latest_schema(subject)
         except ClientError as e:
             message = "Unable to retrieve schema id for subject %s" % (subject)
             raise SerializerError(message)
@@ -97,7 +103,7 @@ class MessageSerializer(object):
             raise SerializerError("record must be a dictionary")
 
         if not self.fast_avro:
-            if  schema_id not in self.id_to_writers:
+            if schema_id not in self.id_to_writers:
                 # get the writer + schema
                 try:
                     schema = self.registry_client.get_by_id(schema_id)
@@ -110,9 +116,9 @@ class MessageSerializer(object):
         with ContextBytesIO() as outf:
             # write the header
             # magic byte
-            outf.write(struct.pack('b',MAGIC_BYTE))
+            outf.write(struct.pack('b', MAGIC_BYTE))
             # write the schema ID in network byte order (big end)
-            outf.write(struct.pack('>I',schema_id))
+            outf.write(struct.pack('>I', schema_id))
             if self.fast_avro:
                 dump(outf, record, schema.to_json())
             else:
@@ -157,6 +163,7 @@ class MessageSerializer(object):
                 pass
 
         avro_reader = avro.io.DatumReader(schema)
+
         def decoder(p):
             bin_decoder = avro.io.BinaryDecoder(p)
             return avro_reader.read(bin_decoder)
@@ -173,7 +180,7 @@ class MessageSerializer(object):
             raise SerializerError("message is too small to decode")
 
         with ContextBytesIO(message) as payload:
-            magic,schema_id = struct.unpack('>bI',payload.read(5))
+            magic, schema_id = struct.unpack('>bI', payload.read(5))
             if magic != MAGIC_BYTE:
                 raise SerializerError("message does not start with magic byte")
             decoder_func = self._get_decoder_func(schema_id, payload)
