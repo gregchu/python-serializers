@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/datamountaineer/python-serializers.svg?branch=master)](https://travis-ci.org/datamountaineer/python-serializers)
-[![PyPI](https://img.shields.io/badge/PyPi-0.2-blue.svg)](https://pypi.python.org/pypi/datamountaineer-schemaregistry/0.2)
+[![PyPI](https://img.shields.io/badge/PyPi-0.3-blue.svg)](https://pypi.python.org/pypi/datamountaineer-schemaregistry/0.3)
 
 # Python Schema Registry Client and Serializers/Deserializers
 
@@ -88,6 +88,10 @@ Reading messages
 message = get_message_from_kafka()
 decoded_object = serializer.decode_message(message)
 ```
+# Release Notes
+
+**0.3**
+* Testing, setup, and import improvements from PR #4
 
 # Testing
 
