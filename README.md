@@ -4,7 +4,7 @@
 # Python Schema Registry Client and Serializers/Deserializers
 
 A Python client used to interact with [Confluent](http://confluent.io/)'s
-[schema registry](https://github.com/confluentinc/schema-registry).  Supports Python 3.5.  This also works within a virtual env.
+[schema registry](https://github.com/confluentinc/schema-registry).  Supports Python 3.6.  This also works within a virtual env.
 
 The API is heavily based off of the existing Java API of [Confluent schema registry](https://github.com/confluentinc/schema-registry).
 
