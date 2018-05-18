@@ -3,9 +3,9 @@ import json
 import http.server
 from threading import Thread
 
-from datamountaineer.schemaregistry.tests import data_gen
+from ggcomm.schemaregistry.tests import data_gen
 
-from datamountaineer.schemaregistry.serializers import Util
+from ggcomm.schemaregistry.serializers import Util
 
 
 class ReqHandler(http.server.BaseHTTPRequestHandler):

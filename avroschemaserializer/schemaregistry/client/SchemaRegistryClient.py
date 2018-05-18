@@ -4,7 +4,7 @@ import urllib.parse
 import json
 import sys
 
-from datamountaineer.schemaregistry.client.ClientError import *
+from avroschemaserializer.schemaregistry.client.ClientError import *
 from ..serializers import Util
 
 # Common accept header sent

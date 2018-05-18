@@ -1,11 +1,11 @@
 import time
 import unittest
 
-from datamountaineer.schemaregistry.tests import data_gen
-from datamountaineer.schemaregistry.tests import mock_registry
+from avroschemaserializer.schemaregistry.tests import data_gen
+from avroschemaserializer.schemaregistry.tests import mock_registry
 
-from datamountaineer.schemaregistry.client import SchemaRegistryClient
-from datamountaineer.schemaregistry.serializers import Util
+from avroschemaserializer.schemaregistry.client import SchemaRegistryClient
+from avroschemaserializer.schemaregistry.serializers import Util
 
 
 class TestCacheSchemaRegistryClient(unittest.TestCase):

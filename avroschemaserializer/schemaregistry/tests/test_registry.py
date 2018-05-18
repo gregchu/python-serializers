@@ -49,10 +49,10 @@
 #     return resp
 #
 # class Server():
-# 
+#
 # def start(self):
 # bottle_daemon_run(cmd='Start')
-# 
+#
 # def stop(self, cmd):
 # testargs = [cmd]
 # with patch.object(sys, 'argv', testargs):

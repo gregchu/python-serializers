@@ -1,9 +1,9 @@
 import struct
 import unittest
 
-from datamountaineer.schemaregistry.tests import data_gen
-from datamountaineer.schemaregistry.client import SchemaRegistryClient
-from datamountaineer.schemaregistry.serializers import (MessageSerializer,
+from avroschemaserializer.schemaregistry.tests import data_gen
+from avroschemaserializer.schemaregistry.client import SchemaRegistryClient
+from avroschemaserializer.schemaregistry.serializers import (MessageSerializer,
                                                         Util,
                                                         SerializerError)
 

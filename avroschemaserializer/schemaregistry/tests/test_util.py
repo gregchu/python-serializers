@@ -2,9 +2,9 @@ import unittest
 
 from avro import schema
 
-from datamountaineer.schemaregistry.tests import data_gen
+from avroschemaserializer.schemaregistry.tests import data_gen
 
-from datamountaineer.schemaregistry.client import Util
+from avroschemaserializer.schemaregistry.client import Util
 
 
 class TestUtil(unittest.TestCase):

@@ -9,8 +9,8 @@ import io
 import struct
 import avro.io
 
-from datamountaineer.schemaregistry.serializers import SerializerError
-from datamountaineer.schemaregistry.client import ClientError
+from ggcomm.schemaregistry.serializers import SerializerError
+from ggcomm.schemaregistry.client import ClientError
 
 MAGIC_BYTE = 0
 
