@@ -3,9 +3,9 @@ import json
 import http.server
 from threading import Thread
 
-from ggcomm.schemaregistry.tests import data_gen
+from avroschemaserializer.schemaregistry.tests import data_gen
 
-from ggcomm.schemaregistry.serializers import Util
+from avroschemaserializer.schemaregistry.serializers import Util
 
 
 class ReqHandler(http.server.BaseHTTPRequestHandler):
