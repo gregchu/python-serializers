@@ -1,7 +1,6 @@
-[![Build Status](https://travis-ci.org/datamountaineer/python-serializers.svg?branch=master)](https://travis-ci.org/datamountaineer/python-serializers)
-[![PyPI](https://img.shields.io/badge/PyPi-0.3-blue.svg)](https://pypi.python.org/pypi/datamountaineer-schemaregistry/0.3)
-
 # Python Schema Registry Client and Serializers/Deserializers
+
+Forked from https://github.com/Landoop/python-serializers
 
 A Python client used to interact with [Confluent](http://confluent.io/)'s
 [schema registry](https://github.com/confluentinc/schema-registry).  Supports Python 3.6.  This also works within a virtual env.
@@ -18,7 +17,7 @@ Run `python setup.py install` from the source root.
 or via pip
 
 ```
-pip3 install datamountaineer-schemaregistry 
+pip3 install avroschemaserializer
 ```
 
 # Example Usage
@@ -26,8 +25,8 @@ pip3 install datamountaineer-schemaregistry
 Setup
 
 ```python
-from datamountaineer.schemaregistry.client import SchemaRegistryClient
-from datamountaineer.schemaregistry.serializers import MessageSerializer, Util
+from avroschemaserializer.schemaregistry.client import SchemaRegistryClient
+from avroschemaserializer.schemaregistry.serializers import MessageSerializer, Util
 
 # Initialize the client
 client = SchemaRegistryClient(url='http://registry.host')
