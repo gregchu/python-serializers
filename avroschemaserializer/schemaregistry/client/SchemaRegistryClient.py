@@ -3,6 +3,7 @@ import urllib.error
 import urllib.parse
 import json
 import sys
+import re
 
 from avroschemaserializer.schemaregistry.client.ClientError import *
 from ..serializers import Util
