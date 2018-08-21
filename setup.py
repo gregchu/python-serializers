@@ -6,11 +6,6 @@ def version():
         return f.read().strip()
 
 
-def readme():
-    with open('README.md') as f:
-        return f.read()
-
-
 def reqs():
     return [
         line.strip() for line in open('requirements.txt') if not line.startswith('#')
@@ -20,15 +15,14 @@ def reqs():
 setup(
     name             = 'avroschemaserializer',
     description      = 'Python 3 Confluent Schema Registry Client',
-    long_description = readme(),
     version          = version(),
     license          = 'Apache 2.0',
     author           = 'avroschemaserializer',
-    author_email     = '',
+    author_email     = 'gregory.h.chu@gmail.com',
     keywords         = 'avroschemaserializer schema registry schemaregistry confluent avro',
     install_requires = reqs(),
     tests_require    = ['mock'],
-    url              = 'https://github.com/datamountaineer/python-serializers',
+    url              = 'https://github.com/gregchu/python-serializers',
     classifiers      = [
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',

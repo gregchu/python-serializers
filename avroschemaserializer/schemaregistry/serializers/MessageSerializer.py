@@ -99,6 +99,32 @@ class MessageSerializer(object):
                 self.id_to_writers[schema_id] = avro.io.DatumWriter(schema)
             return self.encode_record_with_schema_id(schema_id, schema, record)
 
+    @staticmethod
+    def encode_record_with_local_schema(schema, record):
+        with ContextBytesIO() as outf:
+            outf.write(struct.pack('b', MAGIC_BYTE))
+            outf.write(struct.pack('>I', 0))
+            encoder = avro.io.BinaryEncoder(outf)
+            writer = avro.io.DatumWriter(schema)
+            writer.write(record, encoder)
+            return outf.getvalue()
+
+    @staticmethod
+    def decode_message_with_local_schema(schema, message):
+        if len(message) <= 5:
+            raise SerializerError("message is too small to decode")
+
+        with ContextBytesIO(message) as payload:
+            magic, schema_id = struct.unpack('>bI', payload.read(5))
+            if magic != MAGIC_BYTE:
+                raise SerializerError("message does not start with magic byte")
+            curr_pos = payload.tell()
+            avro_reader = avro.io.DatumReader(schema)
+            def decoder(p):
+                bin_decoder = avro.io.BinaryDecoder(p)
+                return avro_reader.read(bin_decoder)
+            return decoder(payload)
+
     def encode_record_with_schema_id(self, schema_id, schema, record):
         """
         Encode a record with a given schema id.  The record must
